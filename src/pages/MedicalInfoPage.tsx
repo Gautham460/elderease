@@ -1,0 +1,316 @@
+import React, { useState, useEffect } from 'react';
+import { Save, AlertTriangle, Plus, X, Heart, Activity, Pill, FileText, Check } from 'lucide-react';
+import { Card, Badge } from '../components/common/Card';
+import { useServiceStore } from '../store/serviceStore';
+import { MainLayout } from '../components/layout/MainLayout';
+import type { MedicalInfo } from '../types';
+
+export const MedicalInfoPage: React.FC = () => {
+  const { medicalInfo, updateMedicalInfo, sosAlerts } = useServiceStore();
+  
+  const [formData, setFormData] = useState<MedicalInfo>({
+    bloodType: '',
+    allergies: [],
+    medications: [],
+    medicalConditions: [],
+    emergencyNotes: '',
+  });
+  
+  const [newAllergy, setNewAllergy] = useState('');
+  const [newMedication, setNewMedication] = useState('');
+  const [newCondition, setNewCondition] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (medicalInfo) {
+      setFormData(medicalInfo);
+    }
+  }, [medicalInfo]);
+
+  const handleSave = () => {
+    updateMedicalInfo(formData);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const addAllergy = () => {
+    if (newAllergy.trim()) {
+      setFormData({ ...formData, allergies: [...formData.allergies, newAllergy.trim()] });
+      setNewAllergy('');
+    }
+  };
+
+  const removeAllergy = (index: number) => {
+    setFormData({ ...formData, allergies: formData.allergies.filter((_, i) => i !== index) });
+  };
+
+  const addMedication = () => {
+    if (newMedication.trim()) {
+      setFormData({ ...formData, medications: [...formData.medications, newMedication.trim()] });
+      setNewMedication('');
+    }
+  };
+
+  const removeMedication = (index: number) => {
+    setFormData({ ...formData, medications: formData.medications.filter((_, i) => i !== index) });
+  };
+
+  const addCondition = () => {
+    if (newCondition.trim()) {
+      setFormData({ ...formData, medicalConditions: [...formData.medicalConditions, newCondition.trim()] });
+      setNewCondition('');
+    }
+  };
+
+  const removeCondition = (index: number) => {
+    setFormData({ ...formData, medicalConditions: formData.medicalConditions.filter((_, i) => i !== index) });
+  };
+
+  const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+
+  return (
+    <MainLayout>
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-2xl p-8 text-white">
+          <h1 className="text-3xl font-bold">Medical Information</h1>
+          <p className="text-red-100 mt-2">This information will be sent with emergency alerts</p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Basic Medical Info */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Heart size={20} className="text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold">Basic Information</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Blood Type</label>
+                <select
+                  value={formData.bloodType}
+                  onChange={(e) => setFormData({ ...formData, bloodType: e.target.value })}
+                  className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">Select Blood Type</option>
+                  {bloodTypes.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Emergency Notes</label>
+                <textarea
+                  value={formData.emergencyNotes}
+                  onChange={(e) => setFormData({ ...formData, emergencyNotes: e.target.value })}
+                  placeholder="Any important medical information for emergency responders..."
+                  className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  rows={4}
+                />
+              </div>
+            </div>
+          </Card>
+
+          {/* Allergies */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <AlertTriangle size={20} className="text-orange-600" />
+              </div>
+              <h2 className="text-xl font-bold">Allergies</h2>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newAllergy}
+                  onChange={(e) => setNewAllergy(e.target.value)}
+                  placeholder="Add allergy..."
+                  className="flex-1 px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
+                />
+                <button
+                  onClick={addAllergy}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {formData.allergies.map((allergy, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm"
+                  >
+                    {allergy}
+                    <button onClick={() => removeAllergy(index)} className="hover:text-orange-900">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+                {formData.allergies.length === 0 && (
+                  <p className="text-sm text-neutral-500">No allergies added</p>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Medications */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Pill size={20} className="text-blue-600" />
+              </div>
+              <h2 className="text-xl font-bold">Current Medications</h2>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newMedication}
+                  onChange={(e) => setNewMedication(e.target.value)}
+                  placeholder="Add medication..."
+                  className="flex-1 px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onKeyPress={(e) => e.key === 'Enter' && addMedication()}
+                />
+                <button
+                  onClick={addMedication}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {formData.medications.map((medication, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm"
+                  >
+                    {medication}
+                    <button onClick={() => removeMedication(index)} className="hover:text-blue-900">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+                {formData.medications.length === 0 && (
+                  <p className="text-sm text-neutral-500">No medications added</p>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Medical Conditions */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Activity size={20} className="text-purple-600" />
+              </div>
+              <h2 className="text-xl font-bold">Medical Conditions</h2>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCondition}
+                  onChange={(e) => setNewCondition(e.target.value)}
+                  placeholder="Add condition..."
+                  className="flex-1 px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onKeyPress={(e) => e.key === 'Enter' && addCondition()}
+                />
+                <button
+                  onClick={addCondition}
+                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {formData.medicalConditions.map((condition, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm"
+                  >
+                    {condition}
+                    <button onClick={() => removeCondition(index)} className="hover:text-purple-900">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+                {formData.medicalConditions.length === 0 && (
+                  <p className="text-sm text-neutral-500">No conditions added</p>
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleSave}
+            className={`flex items-center gap-2 px-6 py-3 font-semibold rounded-xl transition-all ${
+              saved 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white hover:shadow-lg'
+            }`}
+          >
+            {saved ? (
+              <>
+                <Check size={20} />
+                Saved Successfully!
+              </>
+            ) : (
+              <>
+                <Save size={20} />
+                Save Medical Info
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* SOS Alerts History */}
+        {sosAlerts.length > 0 && (
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <FileText size={20} className="text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold">Recent SOS Alerts</h2>
+            </div>
+            
+            <div className="space-y-3">
+              {sosAlerts.slice(0, 5).map((alert) => (
+                <div key={alert.id} className="flex justify-between items-center p-3 bg-neutral-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">{alert.type.replace('_', ' ').toUpperCase()}</p>
+                    <p className="text-sm text-neutral-500">
+                      {new Date(alert.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                  <Badge 
+                    status={
+                      alert.status === 'resolved' ? 'success' : 
+                      alert.status === 'responded' ? 'warning' : 
+                      alert.status === 'acknowledged' ? 'info' : 'danger'
+                    }
+                  >
+                    {alert.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
+    </MainLayout>
+  );
+};
