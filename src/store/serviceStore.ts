@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import type { Hospital, Doctor, Appointment, Pharmacy, MedicineOrder, HomeHelper, ServiceRequest, SOSAlert, MedicalInfo } from '../types';
+import api from '../services/api';
+import { healthcareService } from '../services/healthcareService';
+import { userDataService } from '../services/userDataService';
 
 // Mock data for hospitals
 const MOCK_HOSPITALS: Hospital[] = [
@@ -195,41 +198,61 @@ interface ServiceStore {
   // Actions - Healthcare
   searchHospitals: (query: string) => Hospital[];
   searchDoctors: (specialty?: string) => Doctor[];
-  bookAppointment: (appointment: Appointment) => void;
-  cancelAppointment: (id: string) => void;
+  bookAppointment: (appointment: Appointment) => Promise<void>;
+  cancelAppointment: (id: string) => Promise<void>;
   
   searchPharmacies: (query: string) => Pharmacy[];
-  orderMedicine: (order: MedicineOrder) => void;
-  cancelOrder: (id: string) => void;
+  orderMedicine: (order: MedicineOrder) => Promise<void>;
+  cancelOrder: (id: string) => Promise<void>;
   
   // Actions - Home Assistance
   searchHomeHelpers: (service?: string) => HomeHelper[];
-  requestService: (request: ServiceRequest) => void;
-  cancelServiceRequest: (id: string) => void;
+  requestService: (request: ServiceRequest) => Promise<void>;
+  cancelServiceRequest: (id: string) => Promise<void>;
   
   // Actions - Emergency SOS
-  triggerSOS: (type: SOSAlert['type']) => void;
+  triggerSOS: (type: SOSAlert['type'], location?: SOSAlert['location']) => Promise<void>;
   updateMedicalInfo: (info: MedicalInfo) => void;
+
+  // New Init Action
+  fetchHealthcareData: (userId: string) => Promise<void>;
 }
 
 export const useServiceStore = create<ServiceStore>((set, get) => {
-  // Load from localStorage
-  const savedAppointments = localStorage.getItem('eldereaseAppointments');
-  const savedOrders = localStorage.getItem('eldereaseMedicineOrders');
-  const savedRequests = localStorage.getItem('eldereaseServiceRequests');
+  // Load local state strictly for unauthenticated fallback or SOS info
   const savedSOSAlerts = localStorage.getItem('eldereaseSOSAlerts');
   const savedMedicalInfo = localStorage.getItem('eldereaseMedicalInfo');
 
   return {
     hospitals: MOCK_HOSPITALS,
     doctors: MOCK_DOCTORS,
-    appointments: savedAppointments ? JSON.parse(savedAppointments) : [],
+    appointments: [],
     pharmacies: MOCK_PHARMACIES,
-    medicineOrders: savedOrders ? JSON.parse(savedOrders) : [],
+    medicineOrders: [],
     homeHelpers: MOCK_HOME_HELPERS,
-    serviceRequests: savedRequests ? JSON.parse(savedRequests) : [],
+    serviceRequests: [],
     sosAlerts: savedSOSAlerts ? JSON.parse(savedSOSAlerts) : [],
     medicalInfo: savedMedicalInfo ? JSON.parse(savedMedicalInfo) : null,
+
+    fetchHealthcareData: async (userId: string) => {
+      try {
+        const [appointments, orders, requests, userData] = await Promise.all([
+          healthcareService.getAppointments(userId),
+          healthcareService.getOrders(userId),
+          healthcareService.getServiceRequests(userId),
+          userDataService.getUserData(userId)
+        ]);
+        set({
+          appointments: appointments || [],
+          medicineOrders: orders || [],
+          serviceRequests: requests || [],
+          sosAlerts: userData?.sosAlerts || [],
+          medicalInfo: userData?.medicalInfo || null,
+        });
+      } catch (error) {
+        console.error("Failed to fetch healthcare data:", error);
+      }
+    },
 
     searchHospitals: (query: string) => {
       const { hospitals } = get();
@@ -248,22 +271,30 @@ export const useServiceStore = create<ServiceStore>((set, get) => {
       );
     },
 
-    bookAppointment: (appointment: Appointment) => {
-      set((state) => {
-        const newAppointments = [...state.appointments, appointment];
-        localStorage.setItem('eldereaseAppointments', JSON.stringify(newAppointments));
-        return { appointments: newAppointments };
-      });
+    bookAppointment: async (appointment: Appointment) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newAppointment = await healthcareService.addAppointment({
+          ...appointment,
+          userId,
+        });
+        set((state) => ({ appointments: [...state.appointments, newAppointment] }));
+      } catch (error) {
+        console.error('Failed to book appointment', error);
+      }
     },
 
-    cancelAppointment: (id: string) => {
-      set((state) => {
-        const newAppointments = state.appointments.map(a =>
-          a.id === id ? { ...a, status: 'cancelled' as const } : a
-        );
-        localStorage.setItem('eldereaseAppointments', JSON.stringify(newAppointments));
-        return { appointments: newAppointments };
-      });
+    cancelAppointment: async (id: string) => {
+      try {
+        await healthcareService.updateAppointment(id, 'cancelled');
+        set((state) => ({
+          appointments: state.appointments.map(a =>
+            a.id === id ? { ...a, status: 'cancelled' as const } : a
+          )
+        }));
+      } catch (error) {
+        console.error('Failed to cancel appointment', error);
+      }
     },
 
     searchPharmacies: (query: string) => {
@@ -274,22 +305,30 @@ export const useServiceStore = create<ServiceStore>((set, get) => {
       );
     },
 
-    orderMedicine: (order: MedicineOrder) => {
-      set((state) => {
-        const newOrders = [...state.medicineOrders, order];
-        localStorage.setItem('eldereaseMedicineOrders', JSON.stringify(newOrders));
-        return { medicineOrders: newOrders };
-      });
+    orderMedicine: async (order: MedicineOrder) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newOrder = await healthcareService.addOrder({
+          ...order,
+          userId,
+        });
+        set((state) => ({ medicineOrders: [...state.medicineOrders, newOrder] }));
+      } catch (error) {
+        console.error('Failed to order medicine', error);
+      }
     },
 
-    cancelOrder: (id: string) => {
-      set((state) => {
-        const newOrders = state.medicineOrders.map(o =>
-          o.id === id ? { ...o, status: 'cancelled' as const } : o
-        );
-        localStorage.setItem('eldereaseMedicineOrders', JSON.stringify(newOrders));
-        return { medicineOrders: newOrders };
-      });
+    cancelOrder: async (id: string) => {
+      try {
+        await healthcareService.updateOrder(id, 'cancelled');
+        set((state) => ({
+          medicineOrders: state.medicineOrders.map(o =>
+            o.id === id ? { ...o, status: 'cancelled' as const } : o
+          )
+        }));
+      } catch (error) {
+        console.error('Failed to cancel order', error);
+      }
     },
 
     searchHomeHelpers: (service?: string) => {
@@ -300,37 +339,49 @@ export const useServiceStore = create<ServiceStore>((set, get) => {
       );
     },
 
-    requestService: (request: ServiceRequest) => {
-      set((state) => {
-        const newRequests = [...state.serviceRequests, request];
-        localStorage.setItem('eldereaseServiceRequests', JSON.stringify(newRequests));
-        return { serviceRequests: newRequests };
-      });
+    requestService: async (request: ServiceRequest) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newRequest = await healthcareService.addServiceRequest({
+          ...request,
+          userId,
+        });
+        set((state) => ({ serviceRequests: [...state.serviceRequests, newRequest] }));
+      } catch (error) {
+        console.error('Failed to request service', error);
+      }
     },
 
-    cancelServiceRequest: (id: string) => {
-      set((state) => {
-        const newRequests = state.serviceRequests.map(r =>
-          r.id === id ? { ...r, status: 'cancelled' as const } : r
-        );
-        localStorage.setItem('eldereaseServiceRequests', JSON.stringify(newRequests));
-        return { serviceRequests: newRequests };
-      });
+    cancelServiceRequest: async (id: string) => {
+      try {
+        await healthcareService.updateServiceRequest(id, 'cancelled');
+        set((state) => ({
+          serviceRequests: state.serviceRequests.map(r =>
+            r.id === id ? { ...r, status: 'cancelled' as const } : r
+          )
+        }));
+      } catch (error) {
+        console.error('Failed to cancel service request', error);
+      }
     },
 
-    triggerSOS: (type: SOSAlert['type']) => {
-const { medicalInfo } = get();
+    triggerSOS: async (type: SOSAlert['type'], customLocation?: SOSAlert['location']) => {
+      const { medicalInfo } = get();
       
-      // Get user's location (mock)
-      const location = {
+      // Default / Fallback location
+      const location = customLocation || {
         latitude: 40.7128,
         longitude: -74.0060,
         address: '123 Main Street, Downtown',
       };
+
+      const userStr = localStorage.getItem('eldereaseUser');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || 'current_user';
       
       const sosAlert: SOSAlert = {
         id: Date.now().toString(),
-        userId: 'current_user',
+        userId,
         timestamp: new Date(),
         type,
         location,
@@ -345,19 +396,42 @@ const { medicalInfo } = get();
         respondersNotified: [],
       };
       
-      set((state) => {
-        const newAlerts = [sosAlert, ...state.sosAlerts];
+      try {
+        const newAlerts = [sosAlert, ...get().sosAlerts];
+        set({ sosAlerts: newAlerts });
         localStorage.setItem('eldereaseSOSAlerts', JSON.stringify(newAlerts));
-        return { sosAlerts: newAlerts };
-      });
-      
-      // In a real app, this would send to emergency services
-      alert(`🚨 EMERGENCY SOS TRIGGERED!\n\nType: ${type}\nLocation: ${location.address}\nMedical info has been sent to emergency responders.`);
+
+        // 1. Sync to MongoDB
+        if (userId !== 'current_user') {
+          await userDataService.updateUserData(userId, { sosAlerts: newAlerts });
+        }
+
+        // 2. Trigger Auto-Email via Backend
+        await api.post('/sos/email', {
+          patientName: user?.name || 'Elderly Patient',
+          patientEmail: user?.email,
+          sosType: type,
+          medicalInfo: sosAlert.medicalInfo,
+          location: sosAlert.location
+        });
+
+      } catch (error) {
+        console.error('Failed to process SOS alert', error);
+      }
     },
 
-    updateMedicalInfo: (info: MedicalInfo) => {
-      set({ medicalInfo: info });
-      localStorage.setItem('eldereaseMedicalInfo', JSON.stringify(info));
+    updateMedicalInfo: async (info: MedicalInfo) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        set({ medicalInfo: info });
+        localStorage.setItem('eldereaseMedicalInfo', JSON.stringify(info));
+
+        if (userId) {
+          await userDataService.updateUserData(userId, { medicalInfo: info });
+        }
+      } catch (error) {
+        console.error('Failed to update medical info', error);
+      }
     },
   };
 });

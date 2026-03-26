@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { HealthReminder, HydrationEntry } from '../types';
+import { userDataService } from '../services/userDataService';
 
 interface ReminderStore {
   // Health Reminders
@@ -20,6 +21,7 @@ interface ReminderStore {
   getTodayHydration: () => number;
   getHydrationProgress: () => number;
   resetDailyHydration: () => void;
+  fetchReminderData: (userId: string) => Promise<void>;
 }
 
 const DEFAULT_REMINDERS: HealthReminder[] = [
@@ -71,63 +73,88 @@ const DEFAULT_REMINDERS: HealthReminder[] = [
 ];
 
 export const useReminderStore = create<ReminderStore>((set, get) => {
-  // Load from localStorage
-  const savedReminders = localStorage.getItem('eldereaseReminders');
-  const savedHydration = localStorage.getItem('eldereaseHydration');
-  const savedGoal = localStorage.getItem('eldereaseHydrationGoal');
-
   return {
-    reminders: savedReminders ? JSON.parse(savedReminders) : DEFAULT_REMINDERS,
-    hydrationEntries: savedHydration ? JSON.parse(savedHydration) : [],
-    hydrationGoal: savedGoal ? parseInt(savedGoal) : 2000, // Default 2L
+    reminders: DEFAULT_REMINDERS,
+    hydrationEntries: [],
+    hydrationGoal: 2000, // Default 2L
 
-    addReminder: (reminder: HealthReminder) => {
-      set((state) => {
-        const newReminders = [...state.reminders, reminder];
-        localStorage.setItem('eldereaseReminders', JSON.stringify(newReminders));
-        return { reminders: newReminders };
-      });
+    fetchReminderData: async (userId: string) => {
+      try {
+        const data = await userDataService.getUserData(userId);
+        if (data) {
+          set({
+            reminders: data.healthReminders?.length ? data.healthReminders : DEFAULT_REMINDERS,
+            hydrationEntries: data.hydrationEntries || [],
+            hydrationGoal: data.hydrationGoal || 2000,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch reminder data:', error);
+      }
     },
 
-    updateReminder: (id: string, updates: Partial<HealthReminder>) => {
-      set((state) => {
-        const newReminders = state.reminders.map((r) =>
+    addReminder: async (reminder: HealthReminder) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newReminders = [...get().reminders, reminder];
+        set({ reminders: newReminders });
+        if (userId) await userDataService.updateUserData(userId, { healthReminders: newReminders });
+      } catch(error) {
+        console.error('Failed to add reminder', error);
+      }
+    },
+
+    updateReminder: async (id: string, updates: Partial<HealthReminder>) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newReminders = get().reminders.map((r) =>
           r.id === id ? { ...r, ...updates } : r
         );
-        localStorage.setItem('eldereaseReminders', JSON.stringify(newReminders));
-        return { reminders: newReminders };
-      });
+        set({ reminders: newReminders });
+        if (userId) await userDataService.updateUserData(userId, { healthReminders: newReminders });
+      } catch(error) {
+        console.error('Failed to update reminder', error);
+      }
     },
 
-    removeReminder: (id: string) => {
-      set((state) => {
-        const newReminders = state.reminders.filter((r) => r.id !== id);
-        localStorage.setItem('eldereaseReminders', JSON.stringify(newReminders));
-        return { reminders: newReminders };
-      });
+    removeReminder: async (id: string) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newReminders = get().reminders.filter((r) => r.id !== id);
+        set({ reminders: newReminders });
+        if (userId) await userDataService.updateUserData(userId, { healthReminders: newReminders });
+      } catch(error) {
+        console.error('Failed to remove reminder', error);
+      }
     },
 
-    toggleReminder: (id: string) => {
-      set((state) => {
-        const newReminders = state.reminders.map((r) =>
+    toggleReminder: async (id: string) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newReminders = get().reminders.map((r) =>
           r.id === id ? { ...r, enabled: !r.enabled } : r
         );
-        localStorage.setItem('eldereaseReminders', JSON.stringify(newReminders));
-        return { reminders: newReminders };
-      });
+        set({ reminders: newReminders });
+        if (userId) await userDataService.updateUserData(userId, { healthReminders: newReminders });
+      } catch(error) {
+        console.error('Failed to toggle reminder', error);
+      }
     },
 
-    addHydrationEntry: (amount: number) => {
-      set((state) => {
+    addHydrationEntry: async (amount: number) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
         const entry: HydrationEntry = {
           id: Date.now().toString(),
           amount,
           timestamp: new Date(),
         };
-        const newEntries = [...state.hydrationEntries, entry];
-        localStorage.setItem('eldereaseHydration', JSON.stringify(newEntries));
-        return { hydrationEntries: newEntries };
-      });
+        const newEntries = [...get().hydrationEntries, entry];
+        set({ hydrationEntries: newEntries });
+        if (userId) await userDataService.updateUserData(userId, { hydrationEntries: newEntries });
+      } catch(error) {
+        console.error('Failed to add hydration entry', error);
+      }
     },
 
     getTodayHydration: () => {
@@ -146,9 +173,14 @@ export const useReminderStore = create<ReminderStore>((set, get) => {
       return Math.min(100, Math.round((todayTotal / hydrationGoal) * 100));
     },
 
-    resetDailyHydration: () => {
-      set({ hydrationEntries: [] });
-      localStorage.setItem('eldereaseHydration', JSON.stringify([]));
+    resetDailyHydration: async () => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        set({ hydrationEntries: [] });
+        if (userId) await userDataService.updateUserData(userId, { hydrationEntries: [] });
+      } catch(error) {
+        console.error('Failed to reset hydration', error);
+      }
     },
   };
 });

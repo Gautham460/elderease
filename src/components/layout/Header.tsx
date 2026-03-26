@@ -47,48 +47,58 @@ export const Header: React.FC = () => {
             >
               Dashboard
             </Link>
-            <Link
-              to="/health"
-              className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
-            >
-              Health
-            </Link>
-            <Link
-              to="/healthcare"
-              className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
-            >
-              Healthcare
-            </Link>
-            <Link
-              to="/home-assistance"
-              className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
-            >
-              Home Help
-            </Link>
-            <Link
-              to="/medications"
-              className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
-            >
-              Medications
-            </Link>
-            <Link
-              to="/contacts"
-              className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
-            >
-              Contacts
-            </Link>
-            <Link
-              to="/reports"
-              className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
-            >
-              Reports
-            </Link>
-            <Link
-              to="/medical-info"
-              className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors duration-200"
-            >
-              Medical Info
-            </Link>
+            {user?.role !== 'caregiver' && (
+              <>
+                <Link
+                  to="/health"
+                  className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
+                >
+                  Health
+                </Link>
+                <Link
+                  to="/healthcare"
+                  className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
+                >
+                  Healthcare
+                </Link>
+                <Link
+                  to="/home-assistance"
+                  className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
+                >
+                  Home Help
+                </Link>
+                <Link
+                  to="/medications"
+                  className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
+                >
+                  Medications
+                </Link>
+                <Link
+                  to="/contacts"
+                  className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
+                >
+                  Contacts
+                </Link>
+                <Link
+                  to="/reports"
+                  className="text-neutral-300 hover:text-primary-400 text-sm font-medium transition-colors duration-200"
+                >
+                  Reports
+                </Link>
+                <Link
+                  to="/ai-assistant"
+                  className="text-primary-400 hover:text-primary-300 text-sm font-bold flex items-center gap-1 transition-colors duration-200"
+                >
+                  <span className="animate-pulse">✨</span> AI Assistant
+                </Link>
+                <Link
+                  to="/medical-info"
+                  className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors duration-200"
+                >
+                  Medical Info
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Right Section */}
@@ -124,6 +134,7 @@ export const Header: React.FC = () => {
                   <div className="px-4 py-3 border-b border-neutral-700">
                     <p className="font-semibold text-white">{user?.name}</p>
                     <p className="text-xs text-neutral-400">{user?.email}</p>
+                    <p className="text-[10px] text-primary-400 mt-1 font-mono break-all">ID: {user?.id}</p>
                   </div>
                   <Link
                     to="/profile"
@@ -164,48 +175,66 @@ export const Header: React.FC = () => {
             >
               Dashboard
             </Link>
-            <Link
-              to="/health"
-              className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Health
-            </Link>
-            <Link
-              to="/healthcare"
-              className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Healthcare
-            </Link>
-            <Link
-              to="/home-assistance"
-              className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Home Help
-            </Link>
-            <Link
-              to="/medications"
-              className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Contacts
-            </Link>
-            <Link
-              to="/reports"
-              className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Reports
-            </Link>
-            <Link
-              to="/medical-info"
-              className="block px-4 py-2 text-red-400 hover:text-red-300 hover:bg-neutral-700 rounded-lg transition-colors"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Medical Info
-            </Link>
+            {user?.role !== 'caregiver' && (
+              <>
+                <Link
+                  to="/health"
+                  className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Health
+                </Link>
+                <Link
+                  to="/healthcare"
+                  className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Healthcare
+                </Link>
+                <Link
+                  to="/home-assistance"
+                  className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Home Help
+                </Link>
+                <Link
+                  to="/medications"
+                  className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Medications
+                </Link>
+                <Link
+                  to="/contacts"
+                  className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Contacts
+                </Link>
+                <Link
+                  to="/reports"
+                  className="block px-4 py-2 text-neutral-300 hover:text-primary-400 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Reports
+                </Link>
+                <Link
+                  to="/ai-assistant"
+                  className="block px-4 py-2 text-primary-400 hover:text-primary-300 hover:bg-neutral-700 rounded-lg font-bold transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  ✨ AI Assistant
+                </Link>
+                <Link
+                  to="/medical-info"
+                  className="block px-4 py-2 text-red-400 hover:text-red-300 hover:bg-neutral-700 rounded-lg transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Medical Info
+                </Link>
+              </>
+            )}
           </nav>
         )}
       </div>

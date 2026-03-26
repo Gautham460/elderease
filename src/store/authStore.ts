@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import type { User, AuthState } from '../types';
+import { authService } from '../services/authService';
 
 interface AuthStore extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password?: string, role?: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
   setError: (error: string | null) => void;
@@ -20,21 +21,14 @@ export const useAuthStore = create<AuthStore>((set) => {
     loading: false,
     error: null,
 
-    login: async (email: string) => {
+    login: async (email: string, password?: string, role?: string) => {
       set({ loading: true, error: null });
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        // Mock user data - in production, this would come from your backend
+        const data = await authService.login(email, password || 'password', role); // pass role down
+        
         const mockUser: User = {
-          id: '1',
-          name: email.split('@')[0],
-          email,
-          role: 'elder',
-          phone: '+1-234-567-8900',
-          address: '123 Main St, Senior City, SC 12345',
-          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + email,
+          ...data.user,
+          token: data.token,
         };
 
         set({
@@ -45,28 +39,24 @@ export const useAuthStore = create<AuthStore>((set) => {
         });
 
         localStorage.setItem('eldereaseUser', JSON.stringify(mockUser));
-      } catch (error) {
+      } catch (error: any) {
         set({
           loading: false,
-          error: 'Login failed. Please try again.',
+          error: error.response?.data?.message || 'Login failed. Please try again.',
           isAuthenticated: false,
         });
         throw error;
       }
     },
 
-    register: async (name: string, email: string, _password: string, role: string) => {
+    register: async (name: string, email: string, password: string, role: string) => {
       set({ loading: true, error: null });
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        const data = await authService.register({ name, email, password, role });
 
         const newUser: User = {
-          id: Math.random().toString(36).substr(2, 9),
-          name,
-          email,
-          role: (role as 'elder' | 'caregiver' | 'admin') || 'elder',
-          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + email,
+          ...data.user,
+          token: data.token,
         };
 
         set({
@@ -77,10 +67,10 @@ export const useAuthStore = create<AuthStore>((set) => {
         });
 
         localStorage.setItem('eldereaseUser', JSON.stringify(newUser));
-      } catch (error) {
+      } catch (error: any) {
         set({
           loading: false,
-          error: 'Registration failed. Please try again.',
+          error: error.response?.data?.message || 'Registration failed. Please try again.',
           isAuthenticated: false,
         });
         throw error;

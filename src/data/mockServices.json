@@ -1,0 +1,118 @@
+{
+  "hospitals": [
+    {
+      "id": "1",
+      "name": "City General Hospital",
+      "address": "123 Main Street, Downtown",
+      "phone": "+1 (555) 123-4567",
+      "distance": 2.5,
+      "rating": 4.5,
+      "specialties": ["Cardiology", "Neurology", "Orthopedics", "Pediatrics"],
+      "isOpen": true,
+      "emergencyAvailable": true
+    },
+    {
+      "id": "2",
+      "name": "Sunrise Medical Center",
+      "address": "456 Oak Avenue, Westside",
+      "phone": "+1 (555) 234-5678",
+      "distance": 4.2,
+      "rating": 4.8,
+      "specialties": ["Cardiology", "Oncology", "General Surgery"],
+      "isOpen": true,
+      "emergencyAvailable": true
+    }
+  ],
+  "doctors": [
+    {
+      "id": "1",
+      "name": "Dr. Sarah Johnson",
+      "hospitalId": "1",
+      "hospitalName": "City General Hospital",
+      "specialty": "Cardiology",
+      "experience": 15,
+      "rating": 4.8,
+      "availability": [],
+      "consultationFee": 500
+    }
+  ],
+  "pharmacies": [
+    {
+      "id": "1",
+      "name": "City Care Pharmacy",
+      "address": "789 Pine Street, Downtown",
+      "phone": "+1 (555) 345-6789",
+      "distance": 1.2,
+      "rating": 4.6,
+      "isOpen": true,
+      "deliveryAvailable": true
+    },
+    {
+      "id": "2",
+      "name": "Green Cross Chemist",
+      "address": "321 Elm Avenue, Westside",
+      "phone": "+1 (555) 456-7890",
+      "distance": 3.8,
+      "rating": 4.9,
+      "isOpen": true,
+      "deliveryAvailable": false
+    },
+    {
+      "id": "3",
+      "name": "Wellness Meds",
+      "address": "444 Maple Drive, Eastside",
+      "phone": "+1 (555) 987-6543",
+      "distance": 2.1,
+      "rating": 4.3,
+      "isOpen": true,
+      "deliveryAvailable": true
+    }
+  ],
+  "homeHelpers": [
+    {
+      "id": "1",
+      "name": "Sarah Jenkins",
+      "photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200",
+      "services": [
+        { "id": "srv1", "name": "Basic Care", "description": "Daily assistance, meal prep, and companionship", "price": 25, "unit": "per_hour" },
+        { "id": "srv2", "name": "Medical Support", "description": "Medication management and vitals check", "price": 40, "unit": "per_hour" }
+      ],
+      "rating": 4.9,
+      "verified": true,
+      "experience": 8,
+      "hourlyRate": 25,
+      "availability": "Mon-Fri, 8AM-4PM",
+      "phone": "+1 (555) 111-2222"
+    },
+    {
+      "id": "2",
+      "name": "David Chen",
+      "photo": "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=200&h=200",
+      "services": [
+        { "id": "srv3", "name": "Physical Therapy", "description": "Mobility exercises and rehabilitation support", "price": 55, "unit": "per_hour" },
+        { "id": "srv1", "name": "Basic Care", "description": "Daily assistance and errands", "price": 22, "unit": "per_hour" }
+      ],
+      "rating": 4.7,
+      "verified": true,
+      "experience": 12,
+      "hourlyRate": 22,
+      "availability": "Weekends",
+      "phone": "+1 (555) 333-4444"
+    },
+    {
+      "id": "3",
+      "name": "Maria Garcia",
+      "photo": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=200&h=200",
+      "services": [
+        { "id": "srv4", "name": "Overnight Care", "description": "Night monitoring and emergency assistance", "price": 180, "unit": "per_visit" },
+        { "id": "srv1", "name": "Basic Care", "description": "Companionship and housekeeping", "price": 20, "unit": "per_hour" }
+      ],
+      "rating": 4.8,
+      "verified": true,
+      "experience": 5,
+      "hourlyRate": 20,
+      "availability": "Overnights 8PM-8AM",
+      "phone": "+1 (555) 555-6666"
+    }
+  ]
+}

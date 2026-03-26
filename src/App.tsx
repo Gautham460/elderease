@@ -1,5 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
+import { useServiceStore } from './store/serviceStore';
+import { useHealthStore } from './store/healthStore';
+import { useReminderStore } from './store/reminderStore';
+import { useContactStore } from './store/contactStore';
 
 // Pages
 import { WelcomePage } from './pages/WelcomePage';
@@ -13,6 +18,8 @@ import { ReportsPage } from './pages/ReportsPage';
 import { HealthcarePage } from './pages/HealthcarePage';
 import { HomeAssistancePage } from './pages/HomeAssistancePage';
 import { MedicalInfoPage } from './pages/MedicalInfoPage';
+import { CaregiverDashboard } from './pages/CaregiverDashboard';
+import { AiAssistantPage } from './pages/AiAssistantPage';
 
 // Components
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -23,7 +30,20 @@ import './App.css';
 import './index.css';
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const { fetchHealthcareData } = useServiceStore();
+  const { fetchHealthData } = useHealthStore();
+  const { fetchReminderData } = useReminderStore();
+  const { fetchContactData } = useContactStore();
+
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      fetchHealthcareData(user.id);
+      fetchHealthData(user.id);
+      fetchReminderData(user.id);
+      fetchContactData(user.id);
+    }
+  }, [isAuthenticated, user?.id, fetchHealthcareData, fetchHealthData, fetchReminderData, fetchContactData]);
 
   return (
     <BrowserRouter>
@@ -48,7 +68,7 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              {user?.role === 'caregiver' ? <CaregiverDashboard /> : <DashboardPage />}
             </ProtectedRoute>
           }
         />
@@ -105,6 +125,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MedicalInfoPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-assistant"
+          element={
+            <ProtectedRoute>
+              <AiAssistantPage />
             </ProtectedRoute>
           }
         />

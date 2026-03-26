@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { FamilyMember, EmergencyContact } from '../types';
+import { userDataService } from '../services/userDataService';
 
 interface ContactStore {
   familyMembers: FamilyMember[];
@@ -9,69 +10,99 @@ interface ContactStore {
   removeFamilyMember: (id: string) => void;
   updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => void;
   
-  addEmergencyContact: (contact: EmergencyContact) => void;
-  removeEmergencyContact: (id: string) => void;
-  updateEmergencyContact: (id: string, updates: Partial<EmergencyContact>) => void;
+  addEmergencyContact: (contact: EmergencyContact) => Promise<void>;
+  removeEmergencyContact: (id: string) => Promise<void>;
+  updateEmergencyContact: (id: string, updates: Partial<EmergencyContact>) => Promise<void>;
+  fetchContactData: (userId: string) => Promise<void>;
 }
 
-export const useContactStore = create<ContactStore>((set) => {
-  const savedFamily = localStorage.getItem('eldereaseFamily');
-  const savedEmergency = localStorage.getItem('eldereaseEmergencyContacts');
-
+export const useContactStore = create<ContactStore>((set, get) => {
   return {
-    familyMembers: savedFamily ? JSON.parse(savedFamily) : [],
-    emergencyContacts: savedEmergency ? JSON.parse(savedEmergency) : [],
+    familyMembers: [],
+    emergencyContacts: [],
 
-    addFamilyMember: (member: FamilyMember) => {
-      set((state) => {
-        const newMembers = [...state.familyMembers, member];
-        localStorage.setItem('eldereaseFamily', JSON.stringify(newMembers));
-        return { familyMembers: newMembers };
-      });
+    fetchContactData: async (userId: string) => {
+      try {
+        const data = await userDataService.getUserData(userId);
+        if (data) {
+          set({
+            familyMembers: data.familyMembers || [],
+            emergencyContacts: data.emergencyContacts || [],
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch contact data:', error);
+      }
     },
 
-    removeFamilyMember: (id: string) => {
-      set((state) => {
-        const newMembers = state.familyMembers.filter((m) => m.id !== id);
-        localStorage.setItem('eldereaseFamily', JSON.stringify(newMembers));
-        return { familyMembers: newMembers };
-      });
+    addFamilyMember: async (member: FamilyMember) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newMembers = [...get().familyMembers, member];
+        set({ familyMembers: newMembers });
+        if (userId) await userDataService.updateUserData(userId, { familyMembers: newMembers });
+      } catch (error) {
+        console.error('Failed to add family member', error);
+      }
     },
 
-    updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => {
-      set((state) => {
-        const newMembers = state.familyMembers.map((m) =>
+    removeFamilyMember: async (id: string) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newMembers = get().familyMembers.filter((m) => m.id !== id);
+        set({ familyMembers: newMembers });
+        if (userId) await userDataService.updateUserData(userId, { familyMembers: newMembers });
+      } catch (error) {
+        console.error('Failed to remove family member', error);
+      }
+    },
+
+    updateFamilyMember: async (id: string, updates: Partial<FamilyMember>) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newMembers = get().familyMembers.map((m) =>
           m.id === id ? { ...m, ...updates } : m
         );
-        localStorage.setItem('eldereaseFamily', JSON.stringify(newMembers));
-        return { familyMembers: newMembers };
-      });
+        set({ familyMembers: newMembers });
+        if (userId) await userDataService.updateUserData(userId, { familyMembers: newMembers });
+      } catch (error) {
+        console.error('Failed to update family member', error);
+      }
     },
 
-    addEmergencyContact: (contact: EmergencyContact) => {
-      set((state) => {
-        const newContacts = [...state.emergencyContacts, contact];
-        localStorage.setItem('eldereaseEmergencyContacts', JSON.stringify(newContacts));
-        return { emergencyContacts: newContacts };
-      });
+    addEmergencyContact: async (contact: EmergencyContact) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newContacts = [...get().emergencyContacts, contact];
+        set({ emergencyContacts: newContacts });
+        if (userId) await userDataService.updateUserData(userId, { emergencyContacts: newContacts });
+      } catch (error) {
+        console.error('Failed to add emergency contact', error);
+      }
     },
 
-    removeEmergencyContact: (id: string) => {
-      set((state) => {
-        const newContacts = state.emergencyContacts.filter((c) => c.id !== id);
-        localStorage.setItem('eldereaseEmergencyContacts', JSON.stringify(newContacts));
-        return { emergencyContacts: newContacts };
-      });
+    removeEmergencyContact: async (id: string) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newContacts = get().emergencyContacts.filter((c) => c.id !== id);
+        set({ emergencyContacts: newContacts });
+        if (userId) await userDataService.updateUserData(userId, { emergencyContacts: newContacts });
+      } catch (error) {
+        console.error('Failed to remove emergency contact', error);
+      }
     },
 
-    updateEmergencyContact: (id: string, updates: Partial<EmergencyContact>) => {
-      set((state) => {
-        const newContacts = state.emergencyContacts.map((c) =>
+    updateEmergencyContact: async (id: string, updates: Partial<EmergencyContact>) => {
+      try {
+        const userId = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').id;
+        const newContacts = get().emergencyContacts.map((c) =>
           c.id === id ? { ...c, ...updates } : c
         );
-        localStorage.setItem('eldereaseEmergencyContacts', JSON.stringify(newContacts));
-        return { emergencyContacts: newContacts };
-      });
+        set({ emergencyContacts: newContacts });
+        if (userId) await userDataService.updateUserData(userId, { emergencyContacts: newContacts });
+      } catch (error) {
+        console.error('Failed to update emergency contact', error);
+      }
     },
   };
 });

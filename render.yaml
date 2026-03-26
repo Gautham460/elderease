@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: elder-ease
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: node server/production.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: MONGODB_URI
+        fromConfig: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: EMAIL_USER
+        value: nehanishad607@gmail.com
+      - key: EMAIL_PASS
+        value: dhoq vyoj edfx dcsb
+      - key: GEMINI_API_KEY
+        value: AIzaSyCOJLrew_DeRBe8ICoamdXr3GGN-_sxeZw
