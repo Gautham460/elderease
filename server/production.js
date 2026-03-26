@@ -43,12 +43,29 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-// Database
-mongoose.connect(process.env.MONGODB_URI)
+// Database Connection with explicit error logging
+const mongodb_uri = process.env.MONGODB_URI;
+
+if (!mongodb_uri) {
+  console.error('CRITICAL ERROR: MONGODB_URI is missing from environment variables!');
+  console.log('Available environment variables:', Object.keys(process.env));
+  process.exit(1);
+}
+
+mongoose.connect(mongodb_uri)
   .then(() => {
     console.log('✅ Production Server: Connected to MongoDB');
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`🚀 ElderEase LIVE on port ${PORT}`);
     });
+    
+    server.on('error', (err) => {
+      console.error('❌ Server startup error:', err);
+      process.exit(1);
+    });
   })
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => {
+    console.error('❌ MongoDB Connection Error Details:');
+    console.error(err);
+    process.exit(1);
+  });
