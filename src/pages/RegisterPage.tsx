@@ -16,6 +16,7 @@ export const RegisterPage: React.FC = () => {
     confirmPassword: '',
     phone: '',
     address: '',
+    role: 'patient' as 'patient' | 'caregiver',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +44,7 @@ export const RegisterPage: React.FC = () => {
     }
 
     try {
-      await register(formData.fullName, formData.email, formData.password, 'caregiver');
+      await register(formData.fullName, formData.email, formData.password, formData.role);
       navigate('/dashboard');
     } catch (err) {
       // Error is handled by the store
@@ -208,6 +209,39 @@ export const RegisterPage: React.FC = () => {
                   className="absolute right-4 top-3.5 text-neutral-400 hover:text-neutral-600 transition-colors"
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 mb-2">
+                I am a... <span className="text-accent-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, role: 'patient' }))}
+                  className={`py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
+                    formData.role === 'patient'
+                      ? 'border-secondary-500 bg-secondary-50 text-secondary-700 shadow-md'
+                      : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
+                  }`}
+                >
+                  <User size={18} />
+                  <span className="font-semibold">Elder</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, role: 'caregiver' }))}
+                  className={`py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
+                    formData.role === 'caregiver'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md'
+                      : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
+                  }`}
+                >
+                  <Heart size={18} />
+                  <span className="font-semibold">Caregiver</span>
                 </button>
               </div>
             </div>
