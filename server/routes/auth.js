@@ -10,6 +10,8 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, caregiverId } = req.body;
+    console.log('--- REGISTRATION REQUEST ---');
+    console.log('User:', { name, email, role });
     
     if (role === 'caregiver') {
       let caregiver = caregiverId ? await Caregiver.findOne({ caregiverId }) : await Caregiver.findOne({ email });
@@ -19,12 +21,15 @@ router.post('/register', async (req, res) => {
         name, 
         email, 
         password, 
-        caregiverId: caregiverId || `CG-${Math.floor(1000 + Math.random() * 9000)}`, // auto-generate if not provided
+        caregiverId: caregiverId || `CG-${Math.floor(1000 + Math.random() * 9000)}`,
         role: 'caregiver'
       });
       await caregiver.save();
       
-      const token = jwt.sign({ id: caregiver._id, role: caregiver.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+      const jwt_secret = process.env.JWT_SECRET;
+      if (!jwt_secret) throw new Error('JWT_SECRET is missing from environment variables');
+
+      const token = jwt.sign({ id: caregiver._id, role: caregiver.role }, jwt_secret, { expiresIn: '1d' });
       return res.status(201).json({ token, user: { id: caregiver._id, name, email, role: 'caregiver', caregiverId: caregiver.caregiverId } });
     }
 
@@ -35,10 +40,14 @@ router.post('/register', async (req, res) => {
     user = new User({ name, email, password, role });
     await user.save();
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const jwt_secret = process.env.JWT_SECRET;
+    if (!jwt_secret) throw new Error('JWT_SECRET is missing from environment variables');
+
+    const token = jwt.sign({ id: user._id, role: user.role }, jwt_secret, { expiresIn: '1d' });
     res.status(201).json({ token, user: { id: user._id, name, email, role } });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('❌ REGISTRATION ERROR:', error.message);
+    res.status(500).json({ message: 'Server error during registration', error: error.message });
   }
 });
 
