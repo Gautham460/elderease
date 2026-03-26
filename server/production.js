@@ -13,6 +13,10 @@ import healthcareRoutes from './routes/healthcare.js';
 import userDataRoutes from './routes/userData.js';
 import sosRoutes from './routes/sos.js';
 
+console.log('**************************************************');
+console.log('🚀 ELDEREASE PRODUCTION SERVER IS STARTING...');
+console.log('**************************************************');
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
