@@ -20,6 +20,7 @@ import { HomeAssistancePage } from './pages/HomeAssistancePage';
 import { MedicalInfoPage } from './pages/MedicalInfoPage';
 import { CaregiverDashboard } from './pages/CaregiverDashboard';
 import { AiAssistantPage } from './pages/AiAssistantPage';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 // Components
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -68,7 +69,15 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              {user?.role === 'caregiver' ? <CaregiverDashboard /> : <DashboardPage />}
+              {user?.role === 'admin' ? <AdminDashboard /> : user?.role === 'caregiver' ? <CaregiverDashboard /> : <DashboardPage />}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute>
+              {<AdminDashboard />}
             </ProtectedRoute>
           }
         />

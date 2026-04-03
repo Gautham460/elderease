@@ -16,6 +16,37 @@ export const ContactsPage: React.FC = () => {
     role: 'caregiver' as 'caregiver' | 'family',
     permission: 'view_only' as 'full' | 'view_only' | 'alerts_only',
   });
+  
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [caregiverIdRequest, setCaregiverIdRequest] = useState('');
+  const [requestStatus, setRequestStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  const handleRequestCaregiver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!caregiverIdRequest) return;
+    
+    try {
+      const token = JSON.parse(localStorage.getItem('eldereaseUser') || '{}').token;
+      if (!token) throw new Error('Not authenticated');
+
+      const response = await fetch('/api/admin/request-caregiver', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ caregiverId: caregiverIdRequest })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to request');
+      
+      setRequestStatus({ type: 'success', message: 'Request sent to admin for approval!' });
+      setCaregiverIdRequest('');
+    } catch (err: any) {
+      setRequestStatus({ type: 'error', message: err.message });
+    }
+  };
 
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +114,12 @@ export const ContactsPage: React.FC = () => {
           >
             <Plus size={20} />
             Add Member
+          </button>
+          <button
+            onClick={() => setShowRequestForm(!showRequestForm)}
+            className="px-4 py-2 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-medium rounded-lg hover:shadow-lg transition-all"
+          >
+            Request Official Caregiver
           </button>
         </div>
 
@@ -207,6 +244,48 @@ export const ContactsPage: React.FC = () => {
                   className="btn-secondary flex-1"
                 >
                   Cancel
+                </button>
+              </div>
+            </form>
+          </Card>
+        )}
+        
+        {/* Request Official Caregiver Form */}
+        {showRequestForm && (
+          <Card title="Request Official Caregiver Authorization" variant="secondary">
+            <form onSubmit={handleRequestCaregiver} className="space-y-4">
+              <p className="text-sm text-neutral-600">Enter the ID of the Caregiver you wish to grant access to your account. This request will be sent to the platform Admin for review.</p>
+              
+              {requestStatus && (
+                <div className={`p-3 rounded-md text-sm ${requestStatus.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {requestStatus.message}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-semibold text-neutral-700 mb-2">
+                  Caregiver Object ID
+                </label>
+                <input
+                  type="text"
+                  value={caregiverIdRequest}
+                  onChange={(e) => setCaregiverIdRequest(e.target.value)}
+                  className="input-field"
+                  placeholder="Enter Object ID of Caregiver"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="btn-primary-lg flex-1">
+                  Submit Request
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRequestForm(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Close
                 </button>
               </div>
             </form>

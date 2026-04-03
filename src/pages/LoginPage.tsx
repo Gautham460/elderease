@@ -10,7 +10,7 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isCaregiver, setIsCaregiver] = useState(false);
+  const [role, setRole] = useState<'patient' | 'caregiver' | 'admin'>('patient');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +22,13 @@ export const LoginPage: React.FC = () => {
     }
 
     try {
-      await login(email, password, isCaregiver ? 'caregiver' : undefined);
-      navigate('/dashboard');
+      await login(email, password, role === 'patient' ? undefined : role);
+      
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       // Error is handled by the store
     }
@@ -56,20 +61,27 @@ export const LoginPage: React.FC = () => {
           )}
 
           {/* Toggle Role */}
-          <div className="flex bg-neutral-100 p-1 rounded-xl mb-6">
+          <div className="flex bg-neutral-100 p-1 rounded-xl mb-6 space-x-1">
             <button
               type="button"
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${!isCaregiver ? 'bg-white shadow-sm text-primary-600' : 'text-neutral-500 hover:text-neutral-700'}`}
-              onClick={() => setIsCaregiver(false)}
+              className={`flex-1 py-1 text-sm font-semibold rounded-lg transition-colors ${role === 'patient' ? 'bg-white shadow-sm text-primary-600' : 'text-neutral-500 hover:text-neutral-700'}`}
+              onClick={() => setRole('patient')}
             >
-              Elder / User
+              Elder
             </button>
             <button
               type="button"
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${isCaregiver ? 'bg-white shadow-sm text-primary-600' : 'text-neutral-500 hover:text-neutral-700'}`}
-              onClick={() => setIsCaregiver(true)}
+              className={`flex-1 py-1 text-sm font-semibold rounded-lg transition-colors ${role === 'caregiver' ? 'bg-white shadow-sm text-primary-600' : 'text-neutral-500 hover:text-neutral-700'}`}
+              onClick={() => setRole('caregiver')}
             >
               Caregiver
+            </button>
+            <button
+              type="button"
+              className={`flex-1 py-1 text-sm font-semibold rounded-lg transition-colors ${role === 'admin' ? 'bg-white shadow-sm text-red-600' : 'text-neutral-500 hover:text-neutral-700'}`}
+              onClick={() => setRole('admin')}
+            >
+              Admin
             </button>
           </div>
 
@@ -156,11 +168,12 @@ export const LoginPage: React.FC = () => {
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-4 mb-6">
             <p className="text-sm font-bold text-primary-900 mb-2 flex items-center gap-2">
               <Smartphone size={16} />
-              Demo Mode
+              Demo Modes
             </p>
-            <p className="text-xs text-primary-800 leading-relaxed">
-              <strong>Email:</strong> demo@example.com<br />
-              <strong>Password:</strong> any password
+            <p className="text-xs text-primary-800 leading-relaxed mb-2">
+              <strong>Elder:</strong> demo@example.com (any password)<br />
+              <strong>Caregiver:</strong> caregiver@example.com (any password)<br />
+              <strong>Admin:</strong> admin@example.com (any password)
             </p>
           </div>
 

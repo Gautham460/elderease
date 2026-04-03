@@ -8,6 +8,7 @@ import aiRoutes from './routes/ai.js';
 import healthcareRoutes from './routes/healthcare.js';
 import userDataRoutes from './routes/userData.js';
 import sosRoutes from './routes/sos.js';
+import adminRoutes from './routes/admin.js';
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/healthcare', healthcareRoutes);
 app.use('/api/user-data', userDataRoutes);
 app.use('/api/sos', sosRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

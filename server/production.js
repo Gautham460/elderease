@@ -12,6 +12,7 @@ import aiRoutes from './routes/ai.js';
 import healthcareRoutes from './routes/healthcare.js';
 import userDataRoutes from './routes/userData.js';
 import sosRoutes from './routes/sos.js';
+import adminRoutes from './routes/admin.js';
 
 console.log('**************************************************');
 console.log('🚀 ELDEREASE PRODUCTION SERVER IS STARTING...');
@@ -35,6 +36,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/healthcare', healthcareRoutes);
 app.use('/api/user-data', userDataRoutes);
 app.use('/api/sos', sosRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 2. STATIC FRONTEND
 // Serves the 'dist' folder from the root

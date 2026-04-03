@@ -57,6 +57,25 @@ router.post('/login', async (req, res) => {
     const { email, caregiverId, password, role } = req.body;
     const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
+    // Admin login
+    if (role === 'admin') {
+      let admin = await User.findOne({ email: normalizedEmail, role: 'admin' });
+      
+      // Seed Demo Admin if not exists
+      if (!admin && normalizedEmail === 'admin@example.com') {
+        admin = new User({ name: 'System Admin', email: 'admin@example.com', password: 'password', role: 'admin' });
+        await admin.save();
+      }
+
+      if (!admin) return res.status(400).json({ message: 'Admin account not found.' });
+
+      const isMatch = await admin.comparePassword(password);
+      if (!isMatch) return res.status(400).json({ message: 'Invalid admin password.' });
+
+      const token = jwt.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+      return res.json({ token, user: { id: admin._id, name: admin.name, email: admin.email, role: admin.role } });
+    }
+
     // Standard Database lookup based on role
     if (role === 'caregiver') {
       let caregiver = caregiverId 
